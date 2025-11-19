@@ -1,48 +1,43 @@
 """
-Database Schemas
+Terra Tranquil Database Schemas
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model represents a MongoDB collection.
+Collection name is the lowercase class name.
 """
+from typing import Optional, List
+from pydantic import BaseModel, Field, HttpUrl
 
-from pydantic import BaseModel, Field
-from typing import Optional
-
-# Example schemas (replace with your own):
-
+# User used only to associate impact/visits. No auth in Phase 1
 class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    username: str = Field(..., description="Public username")
+    avatar_url: Optional[HttpUrl] = Field(None, description="Avatar image URL")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class Business(BaseModel):
+    name: str
+    category: str
+    location: str
+    website: Optional[str] = None
+    description: Optional[str] = None
+    eco_checks: List[bool] = Field(default_factory=list, description="5-item checklist booleans")
+    logo_url: Optional[str] = None
+    eco_score: int = Field(ge=0, le=100, default=80)
+    hero_image: Optional[str] = None
 
-# Add your own schemas here:
-# --------------------------------------------------
+class Visit(BaseModel):
+    user_id: str
+    business_id: str
+    business_name: str
+    category: str
+    location: str
+    eco_points: int = 10
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Impact(BaseModel):
+    user_id: str
+    username: str
+    visits: int = 0
+    eco_points: int = 0
+    community_impact: int = 0
+    terra_level: int = 0
+"""
+Note: The Flames database viewer reads these schemas via GET /schema.
+"""
